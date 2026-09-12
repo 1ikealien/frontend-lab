@@ -9,3 +9,18 @@ body,
   padding: 0;
   min-height: 100%;
 }
+
+:root {
+  --bg-color: #ffffff;
+  --text-color: #222222;
+}
+
+html.dark {
+  --bg-color: #181818;
+  --text-color: #ffffff;
+}
+
+body {
+  background: var(--bg-color);
+  color: var(--text-color);
+}

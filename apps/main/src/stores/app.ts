@@ -1,8 +1,10 @@
+type Theme = 'light' | 'dark'
 import { defineStore } from 'pinia'
 
 export const useAppStore = defineStore('app', {
   state: () => ({
-    userName: 'likealien'
+    userName: 'likealien',
+    theme: 'light' as Theme
   }),
   getters: {
     displayName: (state) => {
@@ -12,6 +14,12 @@ export const useAppStore = defineStore('app', {
   actions: {
     setUserName(name: string) {
       this.userName = name
+    },
+    setTheme(theme: Theme) {
+      this.theme = theme
+    },
+    toggleTheme() {
+      this.theme = this.theme === 'light' ? 'dark' : 'light'
     }
   }
 })

@@ -6,13 +6,14 @@ const appStore = useAppStore()
 const changeName = (text: string) => {
   appStore.setUserName(text)
 }
-
-
 </script>
 <template>
   <header class="header">
     <h2>{{ appStore.displayName }}</h2>
     <button @click="changeName('小红')">修改用户名</button>
+    <button @click="appStore.toggleTheme">
+      {{ appStore.theme === 'light' ? '🌙' : '☀️' }}
+    </button>
   </header>
 </template>
 
