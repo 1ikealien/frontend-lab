@@ -1,7 +1,18 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useAppStore } from '@/stores/app'
+
+const appStore = useAppStore()
+
+const changeName = (text: string) => {
+  appStore.setUserName(text)
+}
+
+
+</script>
 <template>
   <header class="header">
-    <h2>Frontend Lab</h2>
+    <h2>{{ appStore.displayName }}</h2>
+    <button @click="changeName('小红')">修改用户名</button>
   </header>
 </template>
 
