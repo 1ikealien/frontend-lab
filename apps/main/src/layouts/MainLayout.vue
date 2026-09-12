@@ -3,6 +3,18 @@ import Header from '@/components/Header.vue'
 import Sidebar from '@/components/Sidebar.vue'
 import Footer from '@/components/Footer.vue'
 import { RouterView } from 'vue-router'
+import { watch } from 'vue'
+import { useAppStore } from '@/stores/app'
+
+const appStore = useAppStore()
+
+watch(
+  () => appStore.theme,
+  (theme) => {
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
