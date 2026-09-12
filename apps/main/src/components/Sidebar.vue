@@ -1,11 +1,12 @@
-<script setup lang="ts"></script>
-
+<script setup lang="ts">
+import { RouterLink } from 'vue-router'
+</script>
 <template>
   <aside class="aside">
-    <div>Home</div>
-    <div>Resume</div>
-    <div>Projects</div>
-    <div>Tech Lab</div>
+    <RouterLink to="/home">Home</RouterLink>
+    <RouterLink to="/resume">Resume</RouterLink>
+    <RouterLink to="/projects">Projects</RouterLink>
+    <RouterLink to="/techLab">Tech Lab</RouterLink>
   </aside>
 </template>
 
@@ -13,5 +14,10 @@
 .aside {
   height: 100%;
   padding: 20px 12px;
+
+  a {
+    display: block;
+    margin: 8px 0;
+  }
 }
 </style>
