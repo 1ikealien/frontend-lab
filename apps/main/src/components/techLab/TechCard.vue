@@ -19,11 +19,11 @@ const props = defineProps<{
         :key="stack"
       >{{ stack }}</li>
     </ul>
-    <a
-      :href="props.demo"
-      target="_blank"
-      rel="noopener noreferrer"
-    >url</a>
+    <!-- <a :href="props.demo">url</a> -->
+    <RouterLink
+      class="demo-link"
+      :to="props.demo"
+    >打开实验</RouterLink>
     <h3>功能</h3>
     <ul>
       <li
@@ -43,6 +43,12 @@ const props = defineProps<{
 
   &:hover {
     transform: translateY(-4px);
+  }
+
+  .demo-link {
+    display: inline-block;
+    margin: 12px 0;
+    text-decoration: none;
   }
 
   ul {

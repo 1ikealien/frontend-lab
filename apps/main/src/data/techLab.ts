@@ -8,7 +8,7 @@ export const techLabData = [
       'Promise',
       'Web Worker',
     ],
-    demo: '/tech-lab/file-upload',
+    demo: '/lab/upload',
     features: [
       '文件切片',
       '上传进度管理',
@@ -24,7 +24,7 @@ export const techLabData = [
       'Drag & Drop',
       'JSON Schema',
     ],
-    demo: '/tech-lab/form-builder',
+    demo: '/lab/form',
     features: [
       '拖拽生成表单',
       '动态组件渲染',
@@ -40,7 +40,7 @@ export const techLabData = [
       'PostMessage',
       'Performance API',
     ],
-    demo: '/tech-lab/worker-demo',
+    demo: '/lab/worker',
     features: [
       '耗时任务拆分',
       '主线程通信',

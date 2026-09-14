@@ -24,8 +24,12 @@ const routes = [
     component: Resume
   },
   {
-    path: '/techLab',
+    path: '/tech-Lab',
     component: TechLab
+  },
+  {
+    path: '/lab/upload',
+    component: () => import('@/views/MicroApp.vue')
   },
   {
     path: '/:pathMatch(.*)*',

@@ -26,6 +26,7 @@ watch(
       </div>
       <main class="main-content">
         <RouterView />
+        <div id="subapp-container"></div>
       </main>
     </div>
     <Footer></Footer>
