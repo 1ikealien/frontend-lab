@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { formatSize } from '@/utils/format.ts'
 
 const file = ref<File | null>(null)
 
@@ -10,18 +11,6 @@ function handleChange(event: Event) {
   if (selectedFile) {
     file.value = selectedFile
   }
-}
-
-function formatSize(size: number) {
-  if (size < 1024) {
-    return size + ' B'
-  }
-
-  if (size < 1024 * 1024) {
-    return (size / 1024).toFixed(2) + 'KB'
-  }
-
-  return (size / 1024 / 1024).toFixed(2) + ' MB'
 }
 
 function clearFile() {
