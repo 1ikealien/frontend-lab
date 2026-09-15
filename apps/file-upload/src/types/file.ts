@@ -4,6 +4,7 @@ export interface UploadFile {
   status: 'ready' | 'uploading' | 'success' | 'error'
   progress: number
   chunks: FileChunk[]
+  isInstant?: boolean
 }
 
 export interface FileChunk {

@@ -4,10 +4,23 @@ import { createChunks } from '@/utils/chunk'
 import { uploadChunk } from '@/api/upload'
 import { retry } from '@/utils/retry'
 import { runWithConcurrency } from '@/utils/concurrency'
+import { checkFileExists } from '@/api/file'
 
 export class UploadManager {
   async prepareUploadFile(file: File): Promise<UploadFile> {
     const hash = await calculateHash(file)
+    const exists = await checkFileExists(hash)
+    
+    if(exists) {
+      return {
+        file,
+        hash,
+        status: 'success',
+        progress: 100,
+        chunks: [],
+        isInstant: true
+      }
+    }
     const chunks = await createChunks(file)
     return {
       file,

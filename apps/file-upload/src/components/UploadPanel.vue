@@ -11,6 +11,12 @@ const uploadManager = new UploadManager()
 async function testUpload() {
   const file = files.value[0]
   if (!file) return
+
+  if (file.isInstant) {
+    console.log('秒传完成')
+    return
+  }
+
   try {
     await uploadManager.upload(file)
     console.log('全部分片上传成功')
