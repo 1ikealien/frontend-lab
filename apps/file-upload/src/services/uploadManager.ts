@@ -46,7 +46,7 @@ export class UploadManager {
     }
   }
 
-  async uploadChunkWithRetry(chunk: FileChunk): Promise<void> {
+  async uploadChunkWithRetry(file: UploadFile, chunk: FileChunk): Promise<void> {
     chunk.status = 'uploading'
 
     try {
@@ -56,6 +56,8 @@ export class UploadManager {
       )
 
       chunk.status = 'success'
+
+      await this.updateRecord(file)
     } catch (error) {
       chunk.status = 'error'
       console.error(error)
@@ -68,7 +70,7 @@ export class UploadManager {
     const tasks = file.chunks.map((chunk) => {
       return async () => {
         try {
-          await this.uploadChunkWithRetry(chunk)
+          await this.uploadChunkWithRetry(file, chunk)
         } finally {
           const successCount = file.chunks.filter(
             (chunk) => chunk.status === 'success'
@@ -89,9 +91,27 @@ export class UploadManager {
         }))
       })
       file.status = 'success'
+
+      await this.updateRecord(file)
     } catch (error) {
       file.status = 'error'
       throw error
     }
+  }
+
+  private async updateRecord(file: UploadFile): Promise<void> {
+    await saveUploadRecord({
+      hash: file.hash,
+      filename: file.file.name,
+      size: file.file.size,
+
+      chunks: file.chunks.map(chunk => ({
+        index: chunk.index,
+        hash: chunk.hash,
+        status:
+        chunk.status === 'success' ? 'success' : 'pending'
+      })),
+      updatedAt: Date.now()
+    })
   }
 }
