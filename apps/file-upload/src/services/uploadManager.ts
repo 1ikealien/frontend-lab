@@ -1,14 +1,14 @@
 import type { FileChunk, UploadFile } from '@/types/file'
-import { calculateHash } from '@/utils/hash'
 import { createChunks } from '@/utils/chunk'
 import { uploadChunk } from '@/api/upload'
 import { retry } from '@/utils/retry'
 import { runWithConcurrency } from '@/utils/concurrency'
 import { checkFileExists } from '@/api/file'
+import { calculateHashWithWorker } from '@/utils/hashWorker'
 
 export class UploadManager {
   async prepareUploadFile(file: File): Promise<UploadFile> {
-    const hash = await calculateHash(file)
+    const hash = await calculateHashWithWorker(file)
     const exists = await checkFileExists(hash)
     
     if(exists) {
