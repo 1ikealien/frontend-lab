@@ -4,7 +4,7 @@ export function uploadChunk(chunk: FileChunk): Promise<void> {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       console.log('上传分片: ',chunk.index)
-      const success = Math.random() > 0.8
+      const success = Math.random() > 0.2
       if (success) {
         resolve()
       } else {

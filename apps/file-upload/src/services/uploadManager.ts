@@ -5,6 +5,7 @@ import { retry } from '@/utils/retry'
 import { runWithConcurrency } from '@/utils/concurrency'
 import { checkFileExists } from '@/api/file'
 import { calculateHashWithWorker } from '@/utils/hashWorker'
+import { mergeFile } from '@/api/merge'
 
 export class UploadManager {
   async prepareUploadFile(file: File): Promise<UploadFile> {
@@ -64,6 +65,7 @@ export class UploadManager {
     })
     try {
       await runWithConcurrency(tasks, 3)
+      await mergeFile(file.hash)
       file.status = 'success'
     } catch (error) {
       file.status = 'error'

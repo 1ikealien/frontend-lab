@@ -15,7 +15,6 @@ async function testUpload() {
     if (file.isInstant) {
       file.status = 'success'
       file.progress = 100
-      console.log(`${file.file.name} 秒传完成`)
       continue
     }
     try {
