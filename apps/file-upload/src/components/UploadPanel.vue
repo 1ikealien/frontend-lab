@@ -66,48 +66,234 @@ function clearFiles() {
 </script>
 
 <template>
-  <input
-    type="file"
-    multiple
-    @change="handleChange"
-  >
+  <div class="upload-panel">
 
-  <div v-if="files.length">
-    <div
-      v-for="file in files"
-      :key="file.hash"
-    >
-      <p>文件名: {{ file.file.name }}</p>
-      <p>文件大小: {{ formatSize(file.file.size) }}</p>
-      <p>文件类型: {{ file.file.type }}</p>
-      <p>Hash: {{ file.hash }}</p>
-      <p>状态: {{ formatStatus(file.status) }}</p>
-      <p>进度: {{ file.progress }}%</p>
-      <p>分片数量: {{ file.chunks.length }}</p>
-      <div>
-        <p>分片信息: </p>
-        <div
-          v-for="chunk in file.chunks"
-          :key="chunk.index"
-        >
-          <p>第 {{ chunk.index + 1 }} 片: {{ formatSize(chunk.chunk.size) }}</p>
-          <p>hash: {{ chunk.hash }}</p>
-          <p>状态: {{ chunk.status }}</p>
-        </div>
-      </div>
+    <div class="toolbar">
+      <input
+        type="file"
+        multiple
+        @change="handleChange"
+      >
+
+      <button
+        v-if="files.length"
+        @click="testUpload"
+      >
+        开始上传
+      </button>
+
+      <button
+        v-if="files.length"
+        @click="clearFiles"
+      >
+        清除文件
+      </button>
     </div>
-  </div>
 
-  <button
-    v-if="files.length"
-    @click="clearFiles"
-  >
-    清除文件
-  </button>
-  <button
-    v-if="files.length"
-    @click="testUpload"
-  >
-    测试上传所有分片
-  </button>
+
+    <div
+      v-if="files.length"
+      class="file-list"
+    >
+
+      <div
+        v-for="file in files"
+        :key="file.hash"
+        class="file-card"
+      >
+
+        <div class="file-header">
+
+          <div>
+            <h3>
+              {{ file.file.name }}
+            </h3>
+
+            <p>
+              {{ formatSize(file.file.size) }}
+            </p>
+          </div>
+
+
+          <span
+            class="status"
+            :class="file.status"
+          >
+            {{ formatStatus(file.status) }}
+          </span>
+
+        </div>
+
+
+        <div class="progress-wrapper">
+
+          <div class="progress">
+
+            <div
+              class="progress-bar"
+              :style="{
+                width: `${file.progress}%`
+              }"
+            />
+
+          </div>
+
+          <span>
+            {{ file.progress }}%
+          </span>
+
+        </div>
+
+
+        <div class="info">
+
+          <p>
+            类型:
+            {{ file.file.type || '未知' }}
+          </p>
+
+          <p>
+            Hash:
+            {{ file.hash }}
+          </p>
+
+          <p>
+            分片数量:
+            {{ file.chunks.length }}
+          </p>
+
+        </div>
+
+
+        <details>
+
+          <summary>
+            查看分片详情
+          </summary>
+
+
+          <div
+            v-for="chunk in file.chunks"
+            :key="chunk.index"
+            class="chunk-item"
+          >
+
+            <p>
+              第 {{ chunk.index + 1 }} 片
+            </p>
+
+            <p>
+              大小:
+              {{ formatSize(chunk.chunk.size) }}
+            </p>
+
+            <p>
+              状态:
+              {{ chunk.status }}
+            </p>
+
+            <p>
+              Hash:
+              {{ chunk.hash }}
+            </p>
+
+          </div>
+
+        </details>
+
+
+      </div>
+
+    </div>
+
+  </div>
 </template>
+
+<style scoped lang="scss">
+.upload-panel {
+  padding: 20px;
+}
+
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+
+button {
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+
+.file-card {
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+
+.file-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+.status.success {
+  color: green;
+}
+
+
+.status.uploading {
+  color: blue;
+}
+
+
+.status.error {
+  color: red;
+}
+
+
+.progress-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+
+.progress {
+  flex: 1;
+  height: 8px;
+  background: #eee;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+
+.progress-bar {
+  height: 100%;
+  background: #409eff;
+}
+
+
+.info {
+  margin-top: 12px;
+}
+
+
+.chunk-item {
+  padding: 8px;
+  margin-top: 8px;
+  border-top: 1px solid #eee;
+}
+</style>
