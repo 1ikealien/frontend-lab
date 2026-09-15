@@ -15,3 +15,13 @@ export interface FileChunk {
   hash: string
   status: 'pending' | 'uploading' | 'success' | 'error'
 }
+
+export interface MergeParams {
+  hash: string
+  filename: string
+  size: number
+  chunks: {
+    index: number
+    hash: string
+  }[]
+}

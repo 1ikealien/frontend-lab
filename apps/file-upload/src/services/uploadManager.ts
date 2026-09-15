@@ -65,7 +65,15 @@ export class UploadManager {
     })
     try {
       await runWithConcurrency(tasks, 3)
-      await mergeFile(file.hash)
+      await mergeFile({
+        hash: file.hash,
+        filename: file.file.name,
+        size: file.file.size,
+        chunks: file.chunks.map(chunk => ({
+          index: chunk.index,
+          hash: chunk.hash
+        }))
+      })
       file.status = 'success'
     } catch (error) {
       file.status = 'error'
