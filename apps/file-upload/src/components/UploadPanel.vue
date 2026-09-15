@@ -1,37 +1,133 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { formatSize } from '@/utils/format.ts'
+import { formatSize } from '@/utils/format'
+import { calculateHash } from '@/utils/hash'
+import type { UploadFile } from '@/types/file'
+import { createChunks } from '@/utils/chunk'
+import { uploadChunk } from '@/api/upload'
+import { runWithConcurrency } from '@/utils/concurrency'
+import { retry } from '@/utils/retry'
 
-const file = ref<File | null>(null)
+const files = ref<UploadFile[]>([])
 
-function handleChange(event: Event) {
+async function testUpload() {
+  const file = files.value[0]
+  if (!file) return
+  const tasks = file.chunks.map((chunk) => {
+    return async () => {
+      chunk.status = 'uploading'
+      try {
+        await retry(
+          () => uploadChunk(chunk),
+          3
+        )
+        chunk.status = 'success'
+      } catch (error) {
+        chunk.status = 'error'
+        console.error(error)
+      }
+      const successCount = file.chunks.filter(
+        (chunk) => chunk.status === 'success'
+      ).length
+      file.progress = Math.round((successCount / file.chunks.length) * 100)
+    }
+  })
+  await runWithConcurrency(tasks, 3)
+  console.log('全部分片上传成功')
+}
+
+function formatStatus(status: UploadFile['status']) {
+  const map: Record<UploadFile['status'], string> = {
+    ready: '等待上传',
+    uploading: '上传中',
+    success: '上传成功',
+    error: '上传失败',
+  }
+  return map[status]
+}
+
+async function handleChange(event: Event) {
   const target = event.target as HTMLInputElement
-  const selectedFile = target.files?.[0]
+  const selectedFiles = target.files
 
-  if (selectedFile) {
-    file.value = selectedFile
+  if (selectedFiles) {
+    const newFiles = Array.from(selectedFiles)
+
+    const uploadFiles = await Promise.all(
+      newFiles.map(async (file): Promise<UploadFile> => {
+        const hash = await calculateHash(file)
+        const chunks = await createChunks(file)
+
+        return {
+          file,
+          hash,
+          status: 'ready',
+          progress: 0,
+          chunks
+        }
+      })
+    )
+
+    uploadFiles.forEach((uploadFile) => {
+      const exists = files.value.some(
+        (item) => item.hash === uploadFile.hash
+      )
+
+      if (!exists) {
+        files.value.push(uploadFile)
+      }
+    })
   }
 }
 
-function clearFile() {
-  file.value = null
+function clearFiles() {
+  files.value = []
 }
 </script>
 
 <template>
   <input
     type="file"
+    multiple
     @change="handleChange"
   >
 
-  <div v-if="file">
-    <p>文件名：{{ file.name }}</p>
-    <p>文件大小：{{ formatSize(file.size) }}</p>
-    <p>文件类型：{{ file.type }}</p>
+  <div v-if="files.length">
+    <div
+      v-for="file in files"
+      :key="file.hash"
+    >
+      <p>文件名: {{ file.file.name }}</p>
+      <p>文件大小: {{ formatSize(file.file.size) }}</p>
+      <p>文件类型: {{ file.file.type }}</p>
+      <p>Hash: {{ file.hash }}</p>
+      <p>状态: {{ formatStatus(file.status) }}</p>
+      <p>进度: {{ file.progress }}%</p>
+      <p>分片数量: {{ file.chunks.length }}</p>
+      <div>
+        <p>分片信息: </p>
+        <div
+          v-for="chunk in file.chunks"
+          :key="chunk.index"
+        >
+          <p>第 {{ chunk.index + 1 }} 片: {{ formatSize(chunk.chunk.size) }}</p>
+          <p>hash: {{ chunk.hash }}</p>
+          <p>状态: {{ chunk.status }}</p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <button
-    v-if="file"
-    @click="clearFile"
-  >清除文件</button>
+    v-if="files.length"
+    @click="clearFiles"
+  >
+    清除文件
+  </button>
+  <button
+    v-if="files.length"
+    @click="testUpload"
+  >
+    测试上传所有分片
+  </button>
 </template>
