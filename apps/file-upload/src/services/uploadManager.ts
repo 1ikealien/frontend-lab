@@ -15,8 +15,8 @@ export class UploadManager {
       return {
         file,
         hash,
-        status: 'success',
-        progress: 100,
+        status: 'ready',
+        progress: 0,
         chunks: [],
         isInstant: true
       }
