@@ -9,19 +9,19 @@ const files = ref<UploadFile[]>([])
 const uploadManager = new UploadManager()
 
 async function testUpload() {
-  const file = files.value[0]
-  if (!file) return
+  if (!files.value.length) return
 
-  if (file.isInstant) {
-    console.log('秒传完成')
-    return
-  }
-
-  try {
-    await uploadManager.upload(file)
-    console.log('全部分片上传成功')
-  } catch (error) {
-    console.error('文件上传失败', error)
+  for (const file of files.value) {
+    if (file.isInstant) {
+      console.log(`${file.file.name} 秒传完成`)
+      continue
+    }
+    try {
+      await uploadManager.upload(file)
+      console.log('全部分片上传成功')
+    } catch (error) {
+      console.error('文件上传失败', error)
+    }
   }
 }
 
