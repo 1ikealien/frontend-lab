@@ -6,6 +6,7 @@ import { runWithConcurrency } from '@/utils/concurrency'
 import { checkFileExists } from '@/api/file'
 import { calculateHashWithWorker } from '@/utils/hashWorker'
 import { mergeFile } from '@/api/merge'
+import { saveUploadRecord } from '@/storage/uploadStore'
 
 export class UploadManager {
   async prepareUploadFile(file: File): Promise<UploadFile> {
@@ -23,6 +24,19 @@ export class UploadManager {
       }
     }
     const chunks = await createChunks(file)
+    
+    await saveUploadRecord({
+      hash,
+      filename: file.name,
+      size: file.size,
+      chunks: chunks.map(chunk => ({
+        index: chunk.index,
+        hash: chunk.hash,
+        status: 'pending',
+      })),
+      updatedAt: Date.now()
+    })
+
     return {
       file,
       hash,
