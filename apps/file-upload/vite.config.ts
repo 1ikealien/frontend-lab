@@ -4,18 +4,14 @@ import qiankunPlugin from 'vite-plugin-qiankun'
 import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
-
   plugins: [
-
     vue(),
-
-    qiankunPlugin(
+    (qiankunPlugin as any)(
       'file-upload',
       {
         useDevMode: true,
       }
     ),
-
   ],
 
   resolve: {
@@ -28,7 +24,5 @@ export default defineConfig({
     port: 3001,
     cors: true,
   },
-
   base: './',
-
 })
