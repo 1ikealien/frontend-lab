@@ -1,39 +1,22 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { formatSize } from '@/utils/format'
-import { calculateHash } from '@/utils/hash'
 import type { UploadFile } from '@/types/file'
-import { createChunks } from '@/utils/chunk'
-import { uploadChunk } from '@/api/upload'
-import { runWithConcurrency } from '@/utils/concurrency'
-import { retry } from '@/utils/retry'
+import { UploadManager } from '@/services/uploadManager'
 
 const files = ref<UploadFile[]>([])
+
+const uploadManager = new UploadManager()
 
 async function testUpload() {
   const file = files.value[0]
   if (!file) return
-  const tasks = file.chunks.map((chunk) => {
-    return async () => {
-      chunk.status = 'uploading'
-      try {
-        await retry(
-          () => uploadChunk(chunk),
-          3
-        )
-        chunk.status = 'success'
-      } catch (error) {
-        chunk.status = 'error'
-        console.error(error)
-      }
-      const successCount = file.chunks.filter(
-        (chunk) => chunk.status === 'success'
-      ).length
-      file.progress = Math.round((successCount / file.chunks.length) * 100)
-    }
-  })
-  await runWithConcurrency(tasks, 3)
-  console.log('全部分片上传成功')
+  try {
+    await uploadManager.upload(file)
+    console.log('全部分片上传成功')
+  } catch (error) {
+    console.error('文件上传失败', error)
+  }
 }
 
 function formatStatus(status: UploadFile['status']) {
@@ -54,17 +37,8 @@ async function handleChange(event: Event) {
     const newFiles = Array.from(selectedFiles)
 
     const uploadFiles = await Promise.all(
-      newFiles.map(async (file): Promise<UploadFile> => {
-        const hash = await calculateHash(file)
-        const chunks = await createChunks(file)
-
-        return {
-          file,
-          hash,
-          status: 'ready',
-          progress: 0,
-          chunks
-        }
+      newFiles.map((file) => {
+        return uploadManager.prepareUploadFile(file)
       })
     )
 
