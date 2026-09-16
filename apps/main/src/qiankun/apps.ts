@@ -7,4 +7,10 @@ export const microApps: RegistrableApp<any>[] =[
     container: '#subapp-container',
     activeRule: '/lab/upload',
   },
+  {
+    name: 'form-builder',
+    entry: 'http://localhost:3002',
+    container: '#subapp-container',
+    activeRule: '/lab/form',    
+  }
 ]

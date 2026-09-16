@@ -32,6 +32,10 @@ const routes = [
     component: () => import('@/views/MicroApp.vue')
   },
   {
+    path: '/lab/form',
+    component: () => import('@/views/MicroApp.vue')
+  },
+  {
     path: '/:pathMatch(.*)*',
     component: NotFound
   },
