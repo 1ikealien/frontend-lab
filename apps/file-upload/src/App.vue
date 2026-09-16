@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import UploadPanel from '@/components/UploadPanel.vue'
+</script>
+
 <template>
-  <div>file-upload</div>
+  <UploadPanel />
 </template>
