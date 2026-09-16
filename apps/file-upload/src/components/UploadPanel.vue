@@ -7,8 +7,14 @@ import { UploadManager } from '@/services/uploadManager'
 const files = ref<UploadFile[]>([])
 const fileInput = ref<HTMLInputElement | null>(null)
 
-function togglePause(file: UploadFile) {
-  file.paused = !file.paused
+async function handlePause(file: UploadFile) {
+  if (file.paused) {
+    file.paused = false
+
+    await uploadManager.upload(file)
+  } else {
+    file.paused = true
+  }
 }
 
 const uploadManager = new UploadManager()
@@ -135,7 +141,7 @@ function clearFiles() {
 
             <button
               v-if="file.status === 'uploading' || file.paused"
-              @click="togglePause(file)"
+              @click="handlePause(file)"
             >
               {{ file.paused ? '继续' : '暂停' }}
             </button>
