@@ -6,11 +6,12 @@ import { runWithConcurrency } from '@/utils/concurrency'
 import { checkFileExists } from '@/api/file'
 import { calculateHashWithWorker } from '@/utils/hashWorker'
 import { mergeFile } from '@/api/merge'
-import { saveUploadRecord } from '@/storage/uploadStore'
+import { getUploadRecord, saveUploadRecord } from '@/storage/uploadStore'
 
 export class UploadManager {
   async prepareUploadFile(file: File): Promise<UploadFile> {
     const hash = await calculateHashWithWorker(file)
+    const record = await getUploadRecord(hash)
     const exists = await checkFileExists(hash)
     
     if(exists) {
@@ -25,6 +26,25 @@ export class UploadManager {
     }
     const chunks = await createChunks(file)
     
+    if (record) {
+      record.chunks.forEach((recordChunk) => {
+        const chunk = chunks.find(
+          (chunk) => chunk.index === recordChunk.index
+        )
+
+        if (chunk && recordChunk.status === 'success') {
+          chunk.status = 'success'
+        }
+      })
+    }
+
+    const successCount = chunks.filter(
+      (chunk) => chunk.status === 'success'
+    ).length
+
+    const progress = Math.round(
+      (successCount / chunks.length) * 100
+    )
     await saveUploadRecord({
       hash,
       filename: file.name,
@@ -32,7 +52,7 @@ export class UploadManager {
       chunks: chunks.map(chunk => ({
         index: chunk.index,
         hash: chunk.hash,
-        status: 'pending',
+        status: chunk.status === 'success' ? 'success' : 'pending',
       })),
       updatedAt: Date.now()
     })
@@ -41,7 +61,7 @@ export class UploadManager {
       file,
       hash,
       status: 'ready',
-      progress: 0,
+      progress,
       chunks
     }
   }
@@ -67,7 +87,7 @@ export class UploadManager {
 
   async upload(file: UploadFile): Promise<void> {
     file.status = 'uploading'
-    const tasks = file.chunks.map((chunk) => {
+    const tasks = file.chunks.filter((chunk) => chunk.status !== 'success').map((chunk) => {
       return async () => {
         try {
           await this.uploadChunkWithRetry(file, chunk)
@@ -81,6 +101,15 @@ export class UploadManager {
     })
     try {
       await runWithConcurrency(tasks, 3)
+
+      const successCount = file.chunks.filter(
+        (chunk) => chunk.status === 'success'
+      ).length
+
+      file.progress = Math.round(
+        (successCount / file.chunks.length) * 100
+      )
+
       await mergeFile({
         hash: file.hash,
         filename: file.file.name,
