@@ -21,6 +21,7 @@ export class UploadManager {
         status: 'ready',
         progress: 0,
         chunks: [],
+        paused: false,
         isInstant: true
       }
     }
@@ -62,7 +63,8 @@ export class UploadManager {
       hash,
       status: 'ready',
       progress,
-      chunks
+      chunks,
+      paused: false
     }
   }
 
@@ -100,8 +102,11 @@ export class UploadManager {
       }
     })
     try {
-      await runWithConcurrency(tasks, 3)
+      await runWithConcurrency(tasks, 3, () => !file.paused)
 
+      if (file.paused) {
+        return
+      }
       const successCount = file.chunks.filter(
         (chunk) => chunk.status === 'success'
       ).length

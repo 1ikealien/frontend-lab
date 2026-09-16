@@ -4,6 +4,7 @@ export interface UploadFile {
   status: 'ready' | 'uploading' | 'success' | 'error'
   progress: number
   chunks: FileChunk[]
+  paused: boolean
   isInstant?: boolean
 }
 
