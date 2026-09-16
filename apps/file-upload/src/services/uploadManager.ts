@@ -46,17 +46,6 @@ export class UploadManager {
     const progress = Math.round(
       (successCount / chunks.length) * 100
     )
-    await saveUploadRecord({
-      hash,
-      filename: file.name,
-      size: file.size,
-      chunks: chunks.map(chunk => ({
-        index: chunk.index,
-        hash: chunk.hash,
-        status: chunk.status === 'success' ? 'success' : 'pending',
-      })),
-      updatedAt: Date.now()
-    })
 
     return {
       file,
