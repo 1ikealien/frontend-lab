@@ -5,6 +5,7 @@ import type { UploadFile } from '@/types/file'
 import { UploadManager } from '@/services/uploadManager'
 
 const files = ref<UploadFile[]>([])
+const fileInput = ref<HTMLInputElement | null>(null)
 
 const uploadManager = new UploadManager()
 
@@ -63,6 +64,10 @@ async function handleChange(event: Event) {
 
 function clearFiles() {
   files.value = []
+
+  if (fileInput.value) {
+    fileInput.value.value = ''
+  }
 }
 </script>
 
@@ -71,6 +76,7 @@ function clearFiles() {
 
     <div class="toolbar">
       <input
+        ref="fileInput"
         type="file"
         multiple
         @change="handleChange"
