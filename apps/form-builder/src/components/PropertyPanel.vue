@@ -26,6 +26,25 @@ function addOption() {
 function removeOption(index: number) {
   props.field?.props?.options?.splice(index, 1)
 }
+
+function handleRequiredChange(checked: boolean) {
+  if (!props.field) {
+    return
+  }
+
+  if (checked) {
+    props.field.rules = [
+      {
+        required: true,
+        message: '该字段不能为空',
+      },
+    ]
+
+    return
+  }
+
+  props.field.rules = undefined
+}
 </script>
 
 <template>
@@ -37,6 +56,25 @@ function removeOption(index: number) {
 
     <div v-else>
       <p>类型: {{ field.type }}</p>
+
+      <div>
+        <label>
+          <input
+            type="checkbox"
+            :checked="field.rules?.some(rule => rule.required)"
+            @change="handleRequiredChange(($event.target as HTMLInputElement).checked)"
+          />
+          必填
+        </label>
+      </div>
+
+      <div v-if="field.rules?.some(rule => rule.required)">
+        <label>校验提示</label>
+        <input
+          :value="field.rules?.find(rule => rule.required)?.message"
+          @input="field.rules!.find(rule => rule.required)!.message = ($event.target as HTMLInputElement).value"
+        />
+      </div>
 
       <button
         :disabled="!props.canMoveUp"

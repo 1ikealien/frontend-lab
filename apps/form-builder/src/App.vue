@@ -4,12 +4,15 @@ import MaterialPanel from '@/components/MaterialPanel.vue'
 import FormCanvas from '@/components/FormCanvas.vue'
 import PropertyPanel from '@/components/PropertyPanel.vue'
 import type { FormField, FormSchema, FieldType } from '@/types/form'
+import PreviewForm from '@/components/PreviewForm.vue'
 
 const schema = ref<FormSchema>({
   fields: [],
 })
 
 const selectedFieldId = ref<string | null>(null)
+
+const previewMode = ref(false)
 
 const selectedField = computed(() => {
   return schema.value.fields.find(
@@ -79,6 +82,7 @@ function handleAddField(type: FieldType) {
     type,
     field: `field_${schema.value.fields.length + 1}`,
     label: '未命名字段',
+    props: {},
   }
 
   if (type === 'input') {
@@ -163,9 +167,22 @@ function handleEndDrop(draggingFieldId: string) {
 </script>
 
 <template>
+  <div class="mode-switch">
+    <button @click="previewMode = false">
+      编辑模式
+    </button>
+
+    <button @click="previewMode = true">
+      预览模式
+    </button>
+  </div>
   <div class="form-builder">
-    <MaterialPanel @add="handleAddField" />
+    <MaterialPanel
+      v-if="!previewMode"
+      @add="handleAddField"
+    />
     <FormCanvas
+      v-if="!previewMode"
       :schema="schema"
       :selected-field-id="selectedFieldId"
       @select="handleSelectField"
@@ -174,11 +191,17 @@ function handleEndDrop(draggingFieldId: string) {
       @drop-end="handleEndDrop"
     />
     <PropertyPanel
+      v-if="!previewMode"
       :field="selectedField"
       :can-move-up="canMoveUp"
       :can-move-down="canMoveDown"
       @move-up="moveFieldUp"
       @move-down="moveFieldDown"
+    />
+
+    <PreviewForm
+      v-if="previewMode"
+      :schema="schema"
     />
   </div>
 </template>
