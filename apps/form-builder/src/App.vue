@@ -14,6 +14,8 @@ const selectedFieldId = ref<string | null>(null)
 
 const previewMode = ref(false)
 
+const fileInput = ref<HTMLInputElement | null>(null)
+
 const selectedField = computed(() => {
   return schema.value.fields.find(
     field => field.id === selectedFieldId.value
@@ -164,6 +166,75 @@ function handleEndDrop(draggingFieldId: string) {
 
   fields.push(draggingField)
 }
+
+function exportSchema() {
+  const json = JSON.stringify(
+    schema.value,
+    null,
+    2
+  )
+
+  const blob = new Blob(
+    [json],
+    {
+      type: 'application/json',
+    }
+  )
+
+  const url = URL.createObjectURL(blob)
+
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'form-schema.json'
+
+  link.click()
+
+  URL.revokeObjectURL(url)
+}
+
+function triggerImport() {
+  fileInput.value?.click()
+}
+
+async function handleFileChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+
+  if (!file) {
+    return
+  }
+
+  try {
+    const text = await file.text()
+
+    const data = JSON.parse(text)
+
+    if (!isValidSchema(data)) {
+      console.error('无效的表单 Schema')
+      return
+    }
+
+    schema.value = data
+
+    selectedFieldId.value = null
+  } catch (error) {
+    console.error('导入 JSON 失败', error)
+  }
+}
+
+function isValidSchema(data: unknown): data is FormSchema {
+  if (!data || typeof data !== 'object') {
+    return false
+  }
+
+  const schema = data as FormSchema
+
+  if (!Array.isArray(schema.fields)) {
+    return false
+  }
+
+  return true
+}
 </script>
 
 <template>
@@ -175,6 +246,22 @@ function handleEndDrop(draggingFieldId: string) {
     <button @click="previewMode = true">
       预览模式
     </button>
+
+    <button @click="exportSchema">
+      导出 JSON
+    </button>
+
+    <button @click="triggerImport">
+      导入 JSON
+    </button>
+
+    <input
+      ref="fileInput"
+      type="file"
+      accept=".json,application/json"
+      hidden
+      @change="handleFileChange"
+    />
   </div>
   <div class="form-builder">
     <MaterialPanel
