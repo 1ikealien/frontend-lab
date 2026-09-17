@@ -3,6 +3,13 @@ import type { FormField } from '@/types/form'
 
 const props = defineProps<{
   field?: FormField
+  canMoveUp: boolean
+  canMoveDown: boolean
+}>()
+
+const emit = defineEmits<{
+  'move-up': []
+  'move-down': []
 }>()
 
 function addOption() {
@@ -30,6 +37,29 @@ function removeOption(index: number) {
 
     <div v-else>
       <p>类型: {{ field.type }}</p>
+
+      <button
+        :disabled="!props.canMoveUp"
+        @click="emit('move-up')"
+      >
+        上移
+      </button>
+      <button
+        :disabled="!props.canMoveDown"
+        @click="emit('move-down')"
+      >
+        下移
+      </button>
+
+      <div>
+        <label>
+          <input
+            type="checkbox"
+            v-model="field.props!.disabled"
+          />
+          禁用
+        </label>
+      </div>
       <div>
         <label>标题</label>
         <input
