@@ -1,95 +1,28 @@
 <script setup lang="ts">
-import { computed, ref, toRaw } from 'vue'
+import { ref } from 'vue'
+import { useFormSchema } from '@/composables/useFormSchema'
 import MaterialPanel from '@/components/MaterialPanel.vue'
 import FormCanvas from '@/components/FormCanvas.vue'
 import PropertyPanel from '@/components/PropertyPanel.vue'
 import type { FormField, FormSchema, FieldType } from '@/types/form'
 import PreviewForm from '@/components/PreviewForm.vue'
 
-const schema = ref<FormSchema>({
-  fields: [],
-})
-
-const undoStack = ref<FormSchema[]>([])
-const redoStack = ref<FormSchema[]>([])
+const {
+  schema,
+  selectedFieldId,
+  selectedField,
+  canMoveUp,
+  canMoveDown,
+  recordHistory,
+  undo,
+  redo,
+} = useFormSchema()
 
 const formData = ref<Record<string, unknown>>({})
-
-const selectedFieldId = ref<string | null>(null)
 
 const previewMode = ref(false)
 
 const fileInput = ref<HTMLInputElement | null>(null)
-
-const selectedField = computed(() => {
-  return schema.value.fields.find(
-    field => field.id === selectedFieldId.value
-  )
-})
-
-const selectedFieldIndex = computed(() => {
-  return schema.value.fields.findIndex(
-    field => field.id === selectedFieldId.value
-  )
-})
-
-const canMoveUp = computed(() => {
-  return selectedFieldIndex.value > 0
-})
-
-const canMoveDown = computed(() => {
-  return (
-    selectedFieldIndex.value >= 0 && selectedFieldIndex.value < schema.value.fields.length - 1
-  )
-})
-
-function recordHistory() {
-  const snapshot = structuredClone(toRaw(schema.value))
-
-  undoStack.value.push(snapshot)
-
-  redoStack.value = []
-
-  console.log('undoStack:', undoStack.value)
-}
-
-recordHistory()
-
-function undo() {
-  if (undoStack.value.length === 0) {
-    return
-  }
-
-  const current = structuredClone(toRaw(schema.value))
-
-  redoStack.value.push(current)
-
-  const previous = undoStack.value.pop()
-
-  if (!previous) {
-    return
-  }
-
-  schema.value = structuredClone(toRaw(previous))
-}
-
-function redo() {
-  if (redoStack.value.length === 0) {
-    return
-  }
-
-  const current = structuredClone(toRaw(schema.value))
-
-  undoStack.value.push(current)
-
-  const next = redoStack.value.pop()
-
-  if (!next) {
-    return
-  }
-
-  schema.value = structuredClone(toRaw(next))
-}
 
 function handleSelectField(fieldId: string) {
   selectedFieldId.value = fieldId
@@ -176,8 +109,6 @@ function moveField(draggingFieldId: string, targetFieldId: string, position: 'be
     return
   }
 
-  recordHistory()
-
   const fields = schema.value.fields
 
   const draggingIndex = fields.findIndex(
@@ -191,6 +122,8 @@ function moveField(draggingFieldId: string, targetFieldId: string, position: 'be
   if (draggingIndex === -1 || targetIndex === -1) {
     return
   }
+
+  recordHistory()
 
   const [draggingField] = fields.splice(draggingIndex, 1)
 
