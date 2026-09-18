@@ -19,7 +19,6 @@ const draggingFieldId = ref<string | null>(null)
 
 function handleDragStart(fieldId: string) {
   draggingFieldId.value = fieldId
-  console.log('dragging field:', draggingFieldId.value)
 }
 
 function handleDragOver(event: DragEvent, fieldId: string) {
@@ -28,15 +27,6 @@ function handleDragOver(event: DragEvent, fieldId: string) {
   }
 
   event.preventDefault()
-
-  const target = event.currentTarget as HTMLElement
-  const rect = target.getBoundingClientRect()
-
-  const middleY = rect.top + rect.height / 2
-
-  const position = event.clientY < middleY ? 'before' : 'after'
-
-  console.log('drag over:', fieldId, position)
 }
 
 function handleBetweenDragOver(event: DragEvent, targetFieldId: string) {
@@ -49,11 +39,6 @@ function handleBetweenDragOver(event: DragEvent, targetFieldId: string) {
   }
 
   event.preventDefault()
-
-  console.log(
-    'between drag over:',
-    targetFieldId
-  )
 }
 
 function handleEndDragOver(event: DragEvent) {
@@ -75,12 +60,6 @@ function handleBetweenDrop(event: DragEvent, targetFieldId: string) {
 
   event.preventDefault()
 
-  console.log(
-    'between drop:',
-    draggingFieldId.value,
-    targetFieldId
-  )
-
   emit(
     'drop-between',
     draggingFieldId.value,
@@ -96,11 +75,6 @@ function handleEndDrop(event: DragEvent) {
 
   event.preventDefault()
 
-  console.log(
-    'end drop:',
-    draggingFieldId.value
-  )
-
   emit('drop-end', draggingFieldId.value)
 }
 
@@ -108,6 +82,8 @@ function handleDrop(event: DragEvent, targetFieldId: string) {
   if (!draggingFieldId.value) {
     return
   }
+
+  event.preventDefault()
 
   const target = event.currentTarget as HTMLElement
   const rect = target.getBoundingClientRect()
