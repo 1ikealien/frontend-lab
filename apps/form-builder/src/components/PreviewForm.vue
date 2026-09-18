@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { reactive, watch } from 'vue'
 import type { FormField, FormSchema } from '@/types/form'
+import FieldRenderer from '@/components/FieldRenderer.vue'
 
 const props = defineProps<{
   schema: FormSchema
+  formData: Record<string, unknown>
 }>()
-
-const formData = reactive<Record<string, unknown>>({})
 
 const errors = reactive<Record<string, string>>({})
 
@@ -26,7 +26,7 @@ function handleSubmit() {
   if (!valid) {
     return
   }
-  console.log('submit:', formData)
+  console.log('submit:', props.formData)
 }
 
 function validateField(field: FormField) {
@@ -38,7 +38,7 @@ function validateField(field: FormField) {
 
   for (const rule of field.rules) {
     if (rule.required) {
-      const value = formData[field.field]
+      const value = props.formData[field.field]
 
       if (
         value === undefined ||
@@ -55,17 +55,43 @@ function validateField(field: FormField) {
   return true
 }
 
-function initalizeFormData() {
+function getInitialValue(field: FormField) {
+  if (field.type === 'checkbox') {
+    return []
+  }
+
+  return ''
+}
+
+function initializeFormData() {
   for (const field of props.schema.fields) {
-    if (field.type === 'checkbox') {
-      formData[field.field] = []
-    } else {
-      formData[field.field] = ''
+    if (!(field.field in props.formData)) {
+      props.formData[field.field] = getInitialValue(field)
+    }
+  }
+
+  const fieldNames = new Set(
+    props.schema.fields.map(field => field.field)
+  )
+
+  for (const key of Object.keys(props.formData)) {
+    if (!fieldNames.has(key)) {
+      delete props.formData[key]
     }
   }
 }
 
-initalizeFormData()
+initializeFormData()
+
+watch(
+  () => props.schema.fields,
+  () => {
+    initializeFormData()
+  },
+  {
+    deep: true,
+  }
+)
 </script>
 
 <template>
@@ -79,73 +105,11 @@ initalizeFormData()
     >
       <label>{{ field.label }}</label>
 
-      <input
-        v-if="field.type === 'input'"
+      <FieldRenderer
         v-model="formData[field.field]"
-        :placeholder="field.props?.placeholder"
-        :disabled="field.props?.disabled"
-        @input="clearFieldError(field.field)"
-      />
-
-      <select
-        v-else-if="field.type === 'select'"
-        :disabled="field.props?.disabled"
-        v-model="formData[field.field]"
-        @change="clearFieldError(field.field)"
-      >
-        <option
-          v-for="option in field.props?.options ?? []"
-          :key="option.value"
-          :value="option.value"
-        >
-          {{ option.label }}
-        </option>
-      </select>
-
-      <div v-else-if="field.type === 'radio'">
-        <label
-          v-for="option in field.props?.options ?? []"
-          :key="option.value"
-        >
-          <input
-            v-model="formData[field.field]"
-            type="radio"
-            :name="field.id"
-            :value="option.value"
-            :disabled="field.props?.disabled"
-            @change="clearFieldError(field.field)"
-          />
-          {{ option.label }}
-        </label>
-      </div>
-
-      <div v-else-if="field.type === 'checkbox'">
-        <label
-          v-for="option in field.props?.options ?? []"
-          :key="option.value"
-        >
-          <input
-            v-model="formData[field.field]"
-            type="checkbox"
-            :value="option.value"
-            :disabled="field.props?.disabled"
-            @change="clearFieldError(field.field)"
-          />
-          {{ option.label }}
-        </label>
-      </div>
-
-      <input
-        v-else-if="field.type === 'date'"
-        v-model="formData[field.field]"
-        type="date"
-        :disabled="field.props?.disabled"
+        :field="field"
         @change="clearFieldError(field.field)"
       />
-
-      <div v-else>
-        暂不支持：{{ field.type }}
-      </div>
 
       <div
         v-if="errors[field.field]"

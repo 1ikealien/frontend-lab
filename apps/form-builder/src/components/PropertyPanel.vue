@@ -10,6 +10,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   'move-up': []
   'move-down': []
+  delete: []
 }>()
 
 function addOption() {
@@ -87,6 +88,10 @@ function handleRequiredChange(checked: boolean) {
         @click="emit('move-down')"
       >
         下移
+      </button>
+
+      <button @click="emit('delete')">
+        删除
       </button>
 
       <div>

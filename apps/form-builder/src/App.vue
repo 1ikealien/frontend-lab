@@ -10,6 +10,8 @@ const schema = ref<FormSchema>({
   fields: [],
 })
 
+const formData = ref<Record<string, unknown>>({})
+
 const selectedFieldId = ref<string | null>(null)
 
 const previewMode = ref(false)
@@ -235,6 +237,20 @@ function isValidSchema(data: unknown): data is FormSchema {
 
   return true
 }
+
+function deleteSelectedField() {
+  const index = schema.value.fields.findIndex(
+    field => field.id === selectedFieldId.value
+  )
+
+  if (index === -1) {
+    return
+  }
+
+  schema.value.fields.splice(index, 1)
+
+  selectedFieldId.value = null
+}
 </script>
 
 <template>
@@ -284,11 +300,13 @@ function isValidSchema(data: unknown): data is FormSchema {
       :can-move-down="canMoveDown"
       @move-up="moveFieldUp"
       @move-down="moveFieldDown"
+      @delete="deleteSelectedField"
     />
 
     <PreviewForm
       v-if="previewMode"
       :schema="schema"
+      :form-data="formData"
     />
   </div>
 </template>
