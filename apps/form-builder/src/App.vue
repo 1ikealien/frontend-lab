@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, toRaw } from 'vue'
 import MaterialPanel from '@/components/MaterialPanel.vue'
 import FormCanvas from '@/components/FormCanvas.vue'
 import PropertyPanel from '@/components/PropertyPanel.vue'
@@ -9,6 +9,9 @@ import PreviewForm from '@/components/PreviewForm.vue'
 const schema = ref<FormSchema>({
   fields: [],
 })
+
+const undoStack = ref<FormSchema[]>([])
+const redoStack = ref<FormSchema[]>([])
 
 const formData = ref<Record<string, unknown>>({})
 
@@ -40,6 +43,54 @@ const canMoveDown = computed(() => {
   )
 })
 
+function recordHistory() {
+  const snapshot = structuredClone(toRaw(schema.value))
+
+  undoStack.value.push(snapshot)
+
+  redoStack.value = []
+
+  console.log('undoStack:', undoStack.value)
+}
+
+recordHistory()
+
+function undo() {
+  if (undoStack.value.length === 0) {
+    return
+  }
+
+  const current = structuredClone(toRaw(schema.value))
+
+  redoStack.value.push(current)
+
+  const previous = undoStack.value.pop()
+
+  if (!previous) {
+    return
+  }
+
+  schema.value = structuredClone(toRaw(previous))
+}
+
+function redo() {
+  if (redoStack.value.length === 0) {
+    return
+  }
+
+  const current = structuredClone(toRaw(schema.value))
+
+  undoStack.value.push(current)
+
+  const next = redoStack.value.pop()
+
+  if (!next) {
+    return
+  }
+
+  schema.value = structuredClone(toRaw(next))
+}
+
 function handleSelectField(fieldId: string) {
   selectedFieldId.value = fieldId
 }
@@ -52,6 +103,8 @@ function moveFieldUp() {
   if (index <= 0) {
     return
   }
+
+  recordHistory()
 
   const fields = schema.value.fields
 
@@ -71,6 +124,8 @@ function moveFieldDown() {
     return
   }
 
+  recordHistory()
+
   const fields = schema.value.fields
 
   const current = fields[index]
@@ -81,6 +136,7 @@ function moveFieldDown() {
 }
 
 function handleAddField(type: FieldType) {
+  recordHistory()
   const field: FormField = {
     id: crypto.randomUUID(),
     type,
@@ -119,6 +175,8 @@ function moveField(draggingFieldId: string, targetFieldId: string, position: 'be
   if (draggingFieldId === targetFieldId) {
     return
   }
+
+  recordHistory()
 
   const fields = schema.value.fields
 
@@ -163,6 +221,8 @@ function handleEndDrop(draggingFieldId: string) {
   if (draggingIndex === -1) {
     return
   }
+
+  recordHistory()
 
   const [draggingField] = fields.splice(draggingIndex, 1)
 
@@ -247,6 +307,8 @@ function deleteSelectedField() {
     return
   }
 
+  recordHistory()
+
   schema.value.fields.splice(index, 1)
 
   selectedFieldId.value = null
@@ -269,6 +331,14 @@ function deleteSelectedField() {
 
     <button @click="triggerImport">
       导入 JSON
+    </button>
+
+    <button @click="undo">
+      撤销
+    </button>
+
+    <button @click="redo">
+      重做
     </button>
 
     <input
