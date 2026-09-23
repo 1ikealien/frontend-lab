@@ -11,40 +11,30 @@ const emit = defineEmits<{
   'move-up': []
   'move-down': []
   delete: []
+  'update-label': [label: string]
+  'end-edit': []
+  'update-disabled': [disabled: boolean]
+  'update-placeholder': [placeholder: string]
+  'end-placeholder-edit': []
+  'update-required': [required: boolean]
+  'update-validation-message': [message: string]
+  'end-validation-message-edit': []
+  'update-field-name': [fieldName: string]
+  'end-field-name-edit': []
+  'update-option-label': [index: number, label: string]
+  'end-option-label-edit': [index: number]
+  'update-option-value': [index: number, value: string]
+  'end-option-value-edit': [index: number]
+  'add-option': []
+  'remove-option': [index: number]
 }>()
 
 function addOption() {
-  if (!props.field?.props?.options) {
-    return
-  }
-
-  props.field.props.options.push({
-    label: `选项 ${props.field.props.options.length + 1}`,
-    value: `option${props.field.props.options.length + 1}`,
-  })
+  emit('add-option')
 }
 
 function removeOption(index: number) {
-  props.field?.props?.options?.splice(index, 1)
-}
-
-function handleRequiredChange(checked: boolean) {
-  if (!props.field) {
-    return
-  }
-
-  if (checked) {
-    props.field.rules = [
-      {
-        required: true,
-        message: '该字段不能为空',
-      },
-    ]
-
-    return
-  }
-
-  props.field.rules = undefined
+  emit('remove-option', index)
 }
 </script>
 
@@ -62,8 +52,13 @@ function handleRequiredChange(checked: boolean) {
         <label>
           <input
             type="checkbox"
-            :checked="field.rules?.some(rule => rule.required)"
-            @change="handleRequiredChange(($event.target as HTMLInputElement).checked)"
+            :checked="field.rules?.some(rule => rule.required) ?? false"
+            @change="
+              emit(
+                'update-required',
+                ($event.target as HTMLInputElement).checked
+              )
+              "
           />
           必填
         </label>
@@ -72,8 +67,12 @@ function handleRequiredChange(checked: boolean) {
       <div v-if="field.rules?.some(rule => rule.required)">
         <label>校验提示</label>
         <input
-          :value="field.rules?.find(rule => rule.required)?.message"
-          @input="field.rules!.find(rule => rule.required)!.message = ($event.target as HTMLInputElement).value"
+          :value="field.rules?.find(rule => rule.required)?.message ?? ''"
+          @input="emit(
+            'update-validation-message',
+            ($event.target as HTMLInputElement).value
+          )"
+          @blur="emit('end-validation-message-edit')"
         />
       </div>
 
@@ -98,7 +97,11 @@ function handleRequiredChange(checked: boolean) {
         <label>
           <input
             type="checkbox"
-            v-model="field.props!.disabled"
+            :checked="field.props?.disabled ?? false"
+            @change="emit(
+              'update-disabled',
+              ($event.target as HTMLInputElement).checked
+            )"
           />
           禁用
         </label>
@@ -107,7 +110,11 @@ function handleRequiredChange(checked: boolean) {
         <label>标题</label>
         <input
           :value="field.label"
-          @input="field.label = ($event.target as HTMLInputElement).value"
+          @input="emit(
+            'update-label',
+            ($event.target as HTMLInputElement).value
+          )"
+          @blur="emit('end-edit')"
         />
       </div>
 
@@ -115,7 +122,11 @@ function handleRequiredChange(checked: boolean) {
         <label>字段名</label>
         <input
           :value="field.field"
-          @input="field.field = ($event.target as HTMLInputElement).value"
+          @input="emit(
+            'update-field-name',
+            ($event.target as HTMLInputElement).value
+          )"
+          @blur="emit('end-field-name-edit')"
         />
       </div>
 
@@ -123,7 +134,11 @@ function handleRequiredChange(checked: boolean) {
         <label>占位文本</label>
         <input
           :value="field.props?.placeholder"
-          @input="field.props!.placeholder = ($event.target as HTMLInputElement).value"
+          @input="emit(
+            'update-placeholder',
+            ($event.target as HTMLInputElement).value
+          )"
+          @blur="emit('end-placeholder-edit')"
         />
       </div>
 
@@ -132,15 +147,25 @@ function handleRequiredChange(checked: boolean) {
 
         <div
           v-for="(option, index) in field.props?.options ?? []"
-          :key="option.value"
+          :key="index"
         >
           <input
             :value="option.label"
-            @input="option.label = ($event.target as HTMLInputElement).value"
+            @input="emit(
+              'update-option-label',
+              index,
+              ($event.target as HTMLInputElement).value
+            )"
+            @blur="emit('end-option-label-edit', index)"
           />
           <input
             :value="option.value"
-            @input="option.value = ($event.target as HTMLInputElement).value"
+            @input="emit(
+              'update-option-value',
+              index,
+              ($event.target as HTMLInputElement).value
+            )"
+            @blur="emit('end-option-value-edit', index)"
           />
           <button @click="removeOption(index)">删除</button>
         </div>

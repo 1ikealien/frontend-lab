@@ -15,13 +15,13 @@ const emit = defineEmits<{
 <template>
   <div>
     <label
-      v-for="option in field.props?.options ?? []"
-      :key="option.value"
+      v-for="(option, optionIndex) in field.props?.options ?? []"
+      :key="optionIndex"
     >
       <input
         v-model="model"
         type="checkbox"
-        :value="option.value"
+        :value="optionIndex"
         :disabled="field.props?.disabled"
         @change="emit('change')"
       >

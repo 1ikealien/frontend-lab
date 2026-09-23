@@ -18,8 +18,8 @@ const emit = defineEmits<{
     @change="emit('change')"
   >
     <option
-      v-for="option in field.props?.options ?? []"
-      :key="option.value"
+      v-for="(option, optionIndex) in field.props?.options ?? []"
+      :key="optionIndex"
       :value="option.value"
     >
       {{ option.label }}

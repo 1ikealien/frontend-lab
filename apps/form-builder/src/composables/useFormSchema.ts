@@ -11,6 +11,8 @@ export function useFormSchema() {
 
   const selectedFieldId = ref<string | null>(null)
 
+  const editingSnapshots = new Map<string, FormSchema>()
+
   const selectedField = computed(() => {
     return schema.value.fields.find(
       field => field.id === selectedFieldId.value
@@ -48,6 +50,8 @@ export function useFormSchema() {
       return
     }
 
+    editingSnapshots.clear()
+
     const current = structuredClone(toRaw(schema.value))
 
     redoStack.value.push(current)
@@ -65,6 +69,8 @@ export function useFormSchema() {
     if (redoStack.value.length === 0) {
       return
     }
+
+    editingSnapshots.clear()
 
     const current = structuredClone(toRaw(schema.value))
 
@@ -228,6 +234,217 @@ export function useFormSchema() {
     selectedFieldId.value = null
   }
 
+  function  updateFieldLabel(fieldId: string, label: string) {
+    updateField(fieldId, field => {
+      field.label = label
+    })
+  }
+
+  function updateFieldDisabled(fieldId: string, disabled: boolean)
+  {
+    updateField(
+      fieldId,
+      field => {
+        if (!field.props) {
+          field.props = {}
+        }
+
+        field.props.disabled = disabled
+      }
+    )
+  }
+
+  function updateFieldPlaceholder(fieldId: string, placeholder: string) {
+    updateField(
+      fieldId,
+      field => {
+        if (!field.props) {
+          field.props = {}
+        }
+
+        field.props.placeholder = placeholder
+      },
+      `${fieldId}:placeholder`
+    )
+  }
+
+  function updateFieldRequired(fieldId: string, required: boolean) {
+    const field = schema.value.fields.find(
+      field => field.id === fieldId
+    )
+
+    if (!field) {
+      return
+    }
+
+    recordHistory()
+
+    if (required) {
+      field.rules = [
+        {
+          required: true,
+          message: '该字段不能为空',
+        },
+      ]
+      return
+    }
+    field.rules = undefined
+  }
+
+  function updateFieldValidationMessage(fieldId: string, message: string) {
+    updateField(
+      fieldId,
+      field => {
+        const rule = field.rules?.find(
+          rule => rule.required
+        )
+
+        if (!rule) {
+          return
+        }
+
+        rule.message = message
+      },
+      `${fieldId}:validation-message`
+    )
+  }
+
+  function updateFieldName(fieldId: string, fieldName: string) {
+    updateField(
+      fieldId,
+      field => {
+        field.field = fieldName
+      },
+      `${fieldId}:field-name`
+    )
+  }
+
+  function updateOptionLabel(
+    fieldId: string,
+    optionIndex: number,
+    label: string
+  ) {
+    updateField(
+      fieldId,
+      field => {
+        const option = field.props?.options?.[optionIndex]
+        if (!option) {
+          return
+        }
+        option.label = label
+      },
+      `${fieldId}:option-label:${optionIndex}`
+    )
+  }
+
+  function updateOptionValue(fieldId: string, optionIndex: number, value: string) {
+    updateField(
+      fieldId,
+      field => {
+        const option = field.props?.options?.[optionIndex]
+
+        if (!option) {
+          return
+        }
+
+        option.value = value
+      },
+      `${fieldId}:option-value:${optionIndex}`
+    )
+  }
+
+  function updateField(
+    fieldId: string,
+    updater: (field: FormField) => void,
+    editKey = fieldId
+  ) {
+    const field = schema.value.fields.find(
+      field => field.id === fieldId
+    )
+
+    if (!field) {
+      return
+    }
+
+    const before = structuredClone(
+      toRaw(schema.value)
+    )
+
+    updater(field)
+
+    const after = structuredClone(
+      toRaw(schema.value)
+    )
+
+    if (
+      JSON.stringify(before) === JSON.stringify(after)
+    ) {
+      return
+    }
+
+    if (!editingSnapshots.has(editKey)) {
+      undoStack.value.push(before)
+      redoStack.value = []
+      editingSnapshots.set(editKey, before)
+    }
+  }
+
+  function endFieldEdit(fieldId: string, editKey = fieldId) {
+    const startSnapshot = editingSnapshots.get(editKey)
+
+    if (!startSnapshot) {
+      return
+    }
+
+    const currentSnapshot = structuredClone(
+      toRaw(schema.value)
+    )
+
+    const isUnchanged = JSON.stringify(startSnapshot) === JSON.stringify(currentSnapshot)
+
+    if(isUnchanged) {
+      undoStack.value.pop()
+    }
+    editingSnapshots.delete(editKey)
+  }
+
+  function addOption(fieldId: string) {
+    const field = schema.value.fields.find(
+      field => field.id === fieldId
+    )
+
+    if (!field?.props?.options) {
+      return
+    }
+
+    recordHistory()
+
+    const options = field.props.options
+
+    options.push({
+      label: `选项 ${options.length + 1}`,
+      value: `option${options.length + 1}`
+    })
+  }
+
+  function removeOption(fieldId: string, optionIndex: number) {
+    const field = schema.value.fields.find(
+      field => field.id === fieldId
+    )
+
+    if (!field?.props?.options) {
+      return
+    }
+
+    if (!field.props.options[optionIndex]) {
+      return
+    }
+
+    recordHistory()
+
+    field.props.options.splice(optionIndex, 1)
+  }
+
   return {
     schema,
     undoStack,
@@ -246,5 +463,17 @@ export function useFormSchema() {
     moveField,
     moveFieldToEnd,
     deleteField,
+    updateFieldLabel,
+    updateField,
+    endFieldEdit,
+    updateFieldDisabled,
+    updateFieldPlaceholder,
+    updateFieldRequired,
+    updateFieldValidationMessage,
+    updateFieldName,
+    updateOptionLabel,
+    updateOptionValue,
+    addOption,
+    removeOption,
   }
 }

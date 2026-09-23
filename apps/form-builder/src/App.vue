@@ -21,6 +21,17 @@ const {
   moveField,
   moveFieldToEnd,
   deleteField,
+  updateFieldLabel,
+  updateFieldDisabled,
+  updateFieldPlaceholder,
+  updateFieldRequired,
+  endFieldEdit,
+  updateFieldValidationMessage,
+  updateFieldName,
+  updateOptionLabel,
+  updateOptionValue,
+  addOption,
+  removeOption,
 } = useFormSchema()
 
 const formData = ref<Record<string, unknown>>({})
@@ -114,6 +125,177 @@ function isValidSchema(data: unknown): data is FormSchema {
   return true
 }
 
+function handleUpdateLabel(label: string) {
+  if (!selectedFieldId.value) {
+    return
+  }
+
+  updateFieldLabel(
+    selectedFieldId.value,
+    label
+  )
+}
+
+function handleUpdateDisabled(disabled: boolean) {
+  if (!selectedFieldId.value) {
+    return
+  }
+
+  updateFieldDisabled(
+    selectedFieldId.value,
+    disabled
+  )
+}
+
+function handleUpdatePlaceholder(placeholder: string) {
+  if (!selectedFieldId.value) {
+    return
+  }
+
+  updateFieldPlaceholder(
+    selectedFieldId.value,
+    placeholder
+  )
+}
+
+function handleUpdateRequired(required: boolean) {
+  if (!selectedFieldId.value) {
+    return
+  }
+
+  updateFieldRequired(
+    selectedFieldId.value,
+    required
+  )
+}
+
+function handleUpdateValidationMessage(message: string) {
+  if (!selectedFieldId.value) {
+    return
+  }
+
+  updateFieldValidationMessage(
+    selectedFieldId.value,
+    message
+  )
+}
+
+function handleEndValidationMessageEdit() {
+  if (!selectedFieldId.value) {
+    return
+  }
+
+  endFieldEdit(
+    selectedFieldId.value,
+    `${selectedFieldId.value}:validation-message`
+  )
+}
+
+function handleEndPlaceholderEdit() {
+  if (!selectedFieldId.value) {
+    return
+  }
+
+  endFieldEdit(
+    selectedFieldId.value,
+    `${selectedFieldId.value}:placeholder`
+  )
+}
+
+function handleUpdateFieldName(fieldName: string) {
+  if (!selectedFieldId.value) {
+    return
+  }
+
+  updateFieldName(
+    selectedFieldId.value,
+    fieldName
+  )
+}
+
+function handleEndFieldNameEdit() {
+  if (!selectedFieldId.value) {
+    return
+  }
+
+  endFieldEdit(
+    selectedFieldId.value,
+    `${selectedFieldId.value}:field-name`
+  )
+}
+
+function handleEndFieldEdit() {
+  if (!selectedFieldId.value) {
+    return
+  }
+
+  endFieldEdit(selectedFieldId.value)
+}
+
+function handleUpdateOptionLabel(index: number, label: string) {
+  if (!selectedFieldId.value) {
+    return
+  }
+
+  updateOptionLabel(
+    selectedFieldId.value,
+    index,
+    label
+  )
+}
+
+function handleEndOptionLabelEdit(index: number) {
+  if (!selectedFieldId.value) {
+    return
+  }
+
+  endFieldEdit(
+    selectedFieldId.value,
+    `${selectedFieldId.value}:option-label:${index}`
+  )
+}
+
+function handleUpdateOptionValue(index: number, value: string) {
+  if (!selectedFieldId.value) {
+    return
+  }
+
+  updateOptionValue(
+    selectedFieldId.value,
+    index,
+    value
+  )
+}
+
+function handleEndOptionValueEdit(index: number) {
+  if (!selectedFieldId.value) {
+    return
+  }
+
+  endFieldEdit(
+    selectedFieldId.value,
+    `${selectedFieldId.value}:option-value:${index}`
+  )
+}
+
+function handleAddOption() {
+  if (!selectedFieldId.value) {
+    return
+  }
+
+  addOption(selectedFieldId.value)
+}
+
+function handleRemoveOption(index: number) {
+  if (!selectedFieldId.value) {
+    return
+  }
+
+  removeOption(
+    selectedFieldId.value,
+    index
+  )
+}
 </script>
 
 <template>
@@ -172,6 +354,22 @@ function isValidSchema(data: unknown): data is FormSchema {
       @move-up="moveFieldUp"
       @move-down="moveFieldDown"
       @delete="deleteField"
+      @update-label="handleUpdateLabel"
+      @end-edit="handleEndFieldEdit"
+      @update-disabled="handleUpdateDisabled"
+      @update-placeholder="handleUpdatePlaceholder"
+      @update-placeholder-edit="handleEndPlaceholderEdit"
+      @update-required="handleUpdateRequired"
+      @update-validation-message="handleUpdateValidationMessage"
+      @end-validation-message-edit="handleEndValidationMessageEdit"
+      @update-field-name="handleUpdateFieldName"
+      @end-field-name-edit="handleEndFieldNameEdit"
+      @update-option-label="handleUpdateOptionLabel"
+      @end-option-label-edit="handleEndOptionLabelEdit"
+      @update-option-value="handleUpdateOptionValue"
+      @end-option-value-edit="handleEndOptionValueEdit"
+      @add-option="handleAddOption"
+      @remove-option="handleRemoveOption"
     />
 
     <PreviewForm
