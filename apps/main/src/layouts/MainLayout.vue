@@ -19,34 +19,40 @@ watch(
 
 <template>
   <div class="main-layout">
-    <Header></Header>
+    <Header />
+
     <div class="layout-middle">
-      <div class="content-left">
-        <Sidebar class="sidebar"></Sidebar>
-      </div>
+      <Sidebar />
+
       <main class="main-content">
         <RouterView />
         <div id="subapp-container"></div>
       </main>
     </div>
-    <Footer></Footer>
+
+    <Footer />
   </div>
 </template>
 
-<style>
+<style scoped lang="scss">
 .main-layout {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: #f5f7fa;
 }
 
 .layout-middle {
   display: flex;
   flex: 1;
+  min-height: 0;
 }
 
 .main-content {
   flex: 1;
-  padding: 16px;
+  min-width: 0;
+  padding: 24px;
+  box-sizing: border-box;
+  overflow: auto;
 }
 </style>
