@@ -21,3 +21,6 @@ app.use(pinia)
 app.use(ElementPlus)
 
 app.mount('#app')
+
+// 等主应用 DOM（含 #subapp-container）就绪后再启动 qiankun
+setupQiankun()
