@@ -2,7 +2,7 @@
   "name": "frontend-lab",
   "private": true,
   "scripts": {
-    "dev": "pnpm --parallel -- filter './apps/*' dev"
+    "dev": "pnpm --parallel -r dev"
   },
   "devDependencies": {
     "sass": "^1.104.0"
