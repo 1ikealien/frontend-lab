@@ -124,6 +124,42 @@ export function useFormSchema() {
     schema.value.fields.push(field)
   }
 
+  function addFieldAt(type: FieldType, index: number) {
+    recordHistory()
+
+    const field: FormField = {
+      id: crypto.randomUUID(),
+      type,
+      field: `field_${schema.value.fields.length + 1}`,
+      label: '未命名字段',
+      props: {},
+    }
+
+    if (type === 'input') {
+      field.props = {
+        placeholder: '请输入',
+      }
+    }
+
+    if (type === 'select' || type === 'radio' || type === 'checkbox') {
+      field.props = {
+        options: [
+          {
+            label: '选项1',
+            value: 'option',
+          },
+          {
+            label: '选项2',
+            value: 'option2',
+          },
+        ],
+      }
+    }
+
+    schema.value.fields.splice(index, 0, field)
+    selectedFieldId.value = field.id
+  }
+
   function moveFieldUp() {
     const index = schema.value.fields.findIndex(
       field => field.id === selectedFieldId.value
@@ -475,5 +511,6 @@ export function useFormSchema() {
     updateOptionValue,
     addOption,
     removeOption,
+    addFieldAt,
   }
 }

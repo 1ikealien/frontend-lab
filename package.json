@@ -3,5 +3,8 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --parallel -- filter './apps/*' dev"
+  },
+  "devDependencies": {
+    "sass": "^1.104.0"
   }
 }

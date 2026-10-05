@@ -79,6 +79,10 @@ function clearFiles() {
     fileInput.value.value = ''
   }
 }
+
+function selectFiles() {
+  fileInput.value?.click()
+}
 </script>
 
 <template>
@@ -87,24 +91,33 @@ function clearFiles() {
     <div class="toolbar">
       <input
         ref="fileInput"
+        class="file-input"
         type="file"
         multiple
         @change="handleChange"
       >
 
-      <button
+      <el-button
+        type="primary"
+        @click="selectFiles"
+      >
+        选择文件
+      </el-button>
+
+      <el-button
         v-if="files.length"
+        type="success"
         @click="testUpload"
       >
         开始上传
-      </button>
+      </el-button>
 
-      <button
+      <el-button
         v-if="files.length"
         @click="clearFiles"
       >
         清除文件
-      </button>
+      </el-button>
     </div>
 
 
@@ -113,7 +126,7 @@ function clearFiles() {
       class="file-list"
     >
 
-      <div
+      <el-card
         v-for="file in files"
         :key="file.hash"
         class="file-card"
@@ -121,7 +134,7 @@ function clearFiles() {
 
         <div class="file-header">
 
-          <div>
+          <div class="file-meta">
             <h3>
               {{ file.file.name }}
             </h3>
@@ -132,41 +145,38 @@ function clearFiles() {
           </div>
 
           <div class="file-actions">
-            <span
-              class="status"
-              :class="file.status"
-            >
+            <el-tag :type="file.status === 'success'
+              ? 'success'
+              : file.status === 'uploading'
+                ? 'primary'
+                : file.status === 'error'
+                  ? 'danger'
+                  : 'info'
+              ">
               {{ formatStatus(file.status) }}
-            </span>
+            </el-tag>
 
-            <button
+            <el-button
               v-if="file.status === 'uploading' || file.paused"
+              size="small"
               @click="handlePause(file)"
             >
               {{ file.paused ? '继续' : '暂停' }}
-            </button>
+            </el-button>
           </div>
 
         </div>
 
 
         <div class="progress-wrapper">
+          <el-progress
+            :percentage="file.progress"
+            :stroke-width="8"
+          />
 
-          <div class="progress">
-
-            <div
-              class="progress-bar"
-              :style="{
-                width: `${file.progress}%`
-              }"
-            />
-
-          </div>
-
-          <span>
+          <span class="progress-text">
             {{ file.progress }}%
           </span>
-
         </div>
 
 
@@ -190,44 +200,40 @@ function clearFiles() {
         </div>
 
 
-        <details>
-
-          <summary>
-            查看分片详情
-          </summary>
-
-
-          <div
-            v-for="chunk in file.chunks"
-            :key="chunk.index"
-            class="chunk-item"
+        <el-collapse>
+          <el-collapse-item
+            title="查看分片详情"
+            name="chunks"
           >
+            <div
+              v-for="chunk in file.chunks"
+              :key="chunk.index"
+              class="chunk-item"
+            >
+              <p>
+                第 {{ chunk.index + 1 }} 片
+              </p>
 
-            <p>
-              第 {{ chunk.index + 1 }} 片
-            </p>
+              <p>
+                大小：
+                {{ formatSize(chunk.chunk.size) }}
+              </p>
 
-            <p>
-              大小:
-              {{ formatSize(chunk.chunk.size) }}
-            </p>
+              <p>
+                状态：
+                {{ chunk.status }}
+              </p>
 
-            <p>
-              状态:
-              {{ chunk.status }}
-            </p>
-
-            <p>
-              Hash:
-              {{ chunk.hash }}
-            </p>
-
-          </div>
-
-        </details>
+              <p>
+                Hash：
+                {{ chunk.hash }}
+              </p>
+            </div>
+          </el-collapse-item>
+        </el-collapse>
 
 
-      </div>
+      </el-card>
 
     </div>
 
@@ -239,19 +245,16 @@ function clearFiles() {
   padding: 20px;
 }
 
-
 .toolbar {
   display: flex;
+  align-items: center;
   gap: 12px;
   margin-bottom: 20px;
 }
 
-
-button {
-  padding: 6px 14px;
-  cursor: pointer;
+.file-input {
+  display: none;
 }
-
 
 .file-list {
   display: flex;
@@ -259,35 +262,44 @@ button {
   gap: 16px;
 }
 
-
 .file-card {
-  padding: 16px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 10px;
 }
-
 
 .file-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
 }
 
+.file-meta {
+  min-width: 0;
 
-.status.success {
-  color: green;
+  h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #303133;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  p {
+    margin: 0;
+    color: #909399;
+    font-size: 13px;
+  }
 }
 
-
-.status.uploading {
-  color: blue;
+.file-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
-
-
-.status.error {
-  color: red;
-}
-
 
 .progress-wrapper {
   display: flex;
@@ -295,30 +307,30 @@ button {
   gap: 10px;
 }
 
-
-.progress {
+.progress-wrapper :deep(.el-progress) {
   flex: 1;
-  height: 8px;
-  background: #eee;
-  border-radius: 4px;
-  overflow: hidden;
 }
 
-
-.progress-bar {
-  height: 100%;
-  background: #409eff;
+.progress-text {
+  min-width: 45px;
+  text-align: right;
 }
-
 
 .info {
   margin-top: 12px;
 }
 
-
 .chunk-item {
-  padding: 8px;
-  margin-top: 8px;
-  border-top: 1px solid #eee;
+  padding: 10px 0;
+
+  &+.chunk-item {
+    border-top: 1px solid #ebeef5;
+  }
+
+  p {
+    margin: 4px 0;
+    color: #606266;
+    font-size: 13px;
+  }
 }
 </style>
