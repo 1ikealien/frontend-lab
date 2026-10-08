@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 import qiankunPlugin from 'vite-plugin-qiankun'
 import { fileURLToPath, URL } from 'node:url'
 
+const base = process.env.VITE_PUBLIC_BASE_URL || 'http://localhost:3001/'
 export default defineConfig({
   plugins: [
     vue(),
@@ -25,5 +26,6 @@ export default defineConfig({
     cors: true,
     origin: 'http://localhost:3001',
   },
-  base: 'http://localhost:3001/',
+  
+  base,
 })
