@@ -10,10 +10,15 @@ const changeName = (text: string) => {
 <template>
   <header class="header">
     <h2>{{ appStore.displayName }}</h2>
-    <button @click="changeName('小红')">修改用户名</button>
-    <button @click="appStore.toggleTheme">
-      {{ appStore.theme === 'light' ? '🌙' : '☀️' }}
-    </button>
+    <div class="header-actions">
+      <el-button @click="changeName('小红')">修改用户名</el-button>
+      <el-button
+        circle
+        @click="appStore.toggleTheme"
+      >
+        {{ appStore.theme === 'light' ? '🌙' : '☀️' }}
+      </el-button>
+    </div>
   </header>
 </template>
 
@@ -22,7 +27,22 @@ const changeName = (text: string) => {
   height: 60px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0 20px;
+  justify-content: space-between;
+  padding: 0 24px;
+  box-sizing: border-box;
+  border-bottom: 1px solid #ebeef5;
+  background: #ffffff;
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
 }
 </style>
